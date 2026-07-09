@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style data-omelette-print-defaults>
+@media print {
+  @page { margin: 0.5in; }
+  h1, h2, h3, h4, h5, h6 { break-after: avoid; }
+  figure, table, pre, blockquote, img, svg, tr, [class~="card" i] { break-inside: avoid; }
+  img, svg { max-width: 100%; }
+  p { orphans: 3; widows: 3; }
+}
+</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+doc-page:not(:defined){visibility:hidden}
+body{margin:0}
+</style>
+</helmet>
+
+<x-import component-from-global-scope="doc-page" from="./doc-page.js" size="letter" margin="0.8in" hint-size="100%,3000px">
+
+<div style="font-family:'IBM Plex Sans',sans-serif;font-size:14.5px;line-height:1.62;color:#1c2620">
+
+<h1 style="font-family:'Source Serif 4',serif;font-size:30px;line-height:1.15;margin:0 0 4px;color:#123c22">AgroLink360 — Frontend ↔ Backend Integration Guide</h1>
+<div style="font-size:13px;color:#5c6b60;margin-bottom:6px">Agro AI Nexus · v1.0 · July 2026 · For the engineering team</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 22px">
+  <span style="font-size:11.5px;font-weight:600;border:1px solid #2f9e57;color:#1c7a3e;border-radius:20px;padding:2px 10px">Node.js + Express API</span>
+  <span style="font-size:11.5px;font-weight:600;border:1px solid #2f9e57;color:#1c7a3e;border-radius:20px;padding:2px 10px">PostgreSQL + PostGIS</span>
+  <span style="font-size:11.5px;font-weight:600;border:1px solid #2f9e57;color:#1c7a3e;border-radius:20px;padding:2px 10px">Python FastAPI AI service</span>
+  <span style="font-size:11.5px;font-weight:600;border:1px solid #2f9e57;color:#1c7a3e;border-radius:20px;padding:2px 10px">MTN MoMo Collection API</span>
+</div>
+
+<h2 style="font-family:'Source Serif 4',serif;font-size:20px;margin:26px 0 8px;color:#123c22">1. System overview</h2>
+<p style="margin:0 0 10px">Every screen in the wireframe maps to REST endpoints served by the Node/Express API (<code style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:#eef3ef;padding:1px 5px;border-radius:4px">:4000</code>). The API persists to PostgreSQL/PostGIS and delegates all predictions to the Python AI service (<code style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:#eef3ef;padding:1px 5px;border-radius:4px">:8000</code>); if the AI service is unreachable, the API answers from built-in heuristics, so the frontend never blocks on the ML stack.</p>
+
+<div style="border:1.5px solid #d7ded8;border-radius:10px;padding:14px 16px;margin:12px 0;background:#fafcfa" data-om-raster>
+  <div style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;line-height:1.9;color:#33413a">
+  Frontend (React / this wireframe)<br>
+  &nbsp;&nbsp;│&nbsp; fetch + JWT bearer token<br>
+  &nbsp;&nbsp;▼<br>
+  <b>Node/Express API :4000</b> ── auth · produce · orders · logistics · payments<br>
+  &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br>
+  &nbsp;&nbsp;▼&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br>
+  PostgreSQL+PostGIS&nbsp;&nbsp;&nbsp;<b>Python AI service :8000</b> (price · harvest · freshness · spoilage)<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ MTN MoMo Collection API (payments, escrow)
+  </div>
+</div>
+
+<p style="margin:0 0 10px">Local bring-up: <code style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:#eef3ef;padding:1px 5px;border-radius:4px">cd backend &amp;&amp; docker compose up</code> — migrations and demo seed run automatically. Demo logins are in <code style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:#eef3ef;padding:1px 5px;border-radius:4px">backend/README.md</code>.</p>
+
+<h2 style="font-family:'Source Serif 4',serif;font-size:20px;margin:26px 0 8px;color:#123c22">2. Authentication</h2>
+<p style="margin:0 0 10px">Phone-first auth (no email). Register/login returns a JWT; send it as <code style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:#eef3ef;padding:1px 5px;border-radius:4px">Authorization: Bearer &lt;token&gt;</code> on every protected call. Role guards are enforced server-side (farmer / buyer / transporter / admin).</p>
+<table style="width:100%;border-collapse:collapse;font-size:13px;margin:10px 0 6px">
+  <thead><tr style="background:#123c22;color:#fff;text-align:left">
+    <th style="padding:7px 10px;font-weight:600">Wireframe screen</th><th style="padding:7px 10px;font-weight:600">Endpoint</th><th style="padding:7px 10px;font-weight:600">Notes</th>
+  </tr></thead>
+  <tbody>
+    <tr style="border-bottom:1px solid #e3e8e4"><td style="padding:7px 10px">Sign up (steps 2–3)</td><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px">POST /api/auth/register</td><td style="padding:7px 10px">body: role, name, phone, password (PIN), community. OTP verify = SMS gateway step before this call.</td></tr>
+    <tr style="border-bottom:1px solid #e3e8e4"><td style="padding:7px 10px">Log in</td><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px">POST /api/auth/login</td><td style="padding:7px 10px">{ phone, password } → { user, token }</td></tr>
+    <tr><td style="padding:7px 10px">Session restore</td><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px">GET /api/auth/me</td><td style="padding:7px 10px">call on app load if a token is stored</td></tr>
+  </tbody>
+</table>
+
+<h2 style="font-family:'Source Serif 4',serif;font-size:20px;margin:26px 0 8px;color:#123c22">3. Screen-by-screen endpoint map</h2>
+
+<h3 style="font-size:15.5px;margin:16px 0 6px;color:#1c7a3e">3.1 Farmer workspace</h3>
+<table style="width:100%;border-collapse:collapse;font-size:13px;margin:6px 0">
+  <thead><tr style="background:#123c22;color:#fff;text-align:left">
+    <th style="padding:7px 10px;font-weight:600;width:34%">UI element</th><th style="padding:7px 10px;font-weight:600;width:33%">Endpoint</th><th style="padding:7px 10px;font-weight:600">Response fields used</th>
+  </tr></thead>
+  <tbody>
+    <tr style="border-bottom:1px solid #e3e8e4"><td style="padding:7px 10px">KPI row (listings / orders / revenue)</td><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px">GET /api/produce/mine<br>GET /api/orders</td><td style="padding:7px 10px">counts + sum of total_ghs (month filter client-side)</td></tr>
+    <tr style="border-bottom:1px solid #e3e8e4"><td style="padding:7px 10px"><b>AI Harvest assistant card</b></td><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px">GET /api/ai/harvest?produce=Tomatoes&amp;planted=2026-05-01<br>GET /api/ai/price?produce=Tomatoes&amp;horizon=14</td><td style="padding:7px 10px">best_window_start/end, confidence · predicted_ghs, change_pct</td></tr>
+    <tr style="border-bottom:1px solid #e3e8e4"><td style="padding:7px 10px">My produce grid + freshness bars</td><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px">GET /api/produce/mine</td><td style="padding:7px 10px">name, quantity, unit, price_ghs, freshness_score, status</td></tr>
+    <tr style="border-bottom:1px solid #e3e8e4"><td style="padding:7px 10px">"List produce" modal → Publish</td><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px">POST /api/produce</td><td style="padding:7px 10px">server assigns freshness_score via AI /freshness before insert</td></tr>
+    <tr style="border-bottom:1px solid #e3e8e4"><td style="padding:7px 10px">Orders received list</td><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px">GET /api/orders</td><td style="padding:7px 10px">farmer sees received orders (role-aware endpoint)</td></tr>
+    <tr><td style="padding:7px 10px">Wallet balance + transactions</td><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px">GET /api/payments/… (per order)</td><td style="padding:7px 10px">payment status per order; balance = MoMo provider API in production</td></tr>
+  </tbody>
+</table>
+
+<h3 style="font-size:15.5px;margin:16px 0 6px;color:#1c7a3e">3.2 Buyer workspace</h3>
+<table style="width:100%;border-collapse:collapse;font-size:13px;margin:6px 0">
+  <thead><tr style="background:#123c22;color:#fff;text-align:left">
+    <th style="padding:7px 10px;font-weight:600;width:34%">UI element</th><th style="padding:7px 10px;font-weight:600;width:33%">Endpoint</th><th style="padding:7px 10px;font-weight:600">Response fields used</th>
+  </tr></thead>
+  <tbody>
+    <tr style="border-bottom:1px solid #e3e8e4"><td style="padding:7px 10px">Marketplace grid, search, chips</td><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px">GET /api/produce?q=&amp;category=&amp;lat=&amp;lng=</td><td style="padding:7px 10px">dist_km (PostGIS ST_Distance), freshness_score, farmer, price_ghs — server returns rows pre-ranked</td></tr>
+    <tr style="border-bottom:1px solid #e3e8e4"><td style="padding:7px 10px">"AI: 92% fresh · price 5% below avg" line</td><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px">GET /api/ai/price?produce=…</td><td style="padding:7px 10px">compare listing price_ghs vs current_ghs</td></tr>
+    <tr style="border-bottom:1px solid #e3e8e4"><td style="padding:7px 10px">Checkout → "Pay with MoMo"</td><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px">POST /api/orders<br>POST /api/payments/momo</td><td style="padding:7px 10px">order is transactional (stock locked, delivery request auto-created); then request MoMo collection with msisdn</td></tr>
+    <tr style="border-bottom:1px solid #e3e8e4"><td style="padding:7px 10px">Payment confirmation</td><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px">GET /api/payments/:ref/status</td><td style="padding:7px 10px">poll until successful → order flips to confirmed (webhook also supported)</td></tr>
+    <tr style="border-bottom:1px solid #e3e8e4"><td style="padding:7px 10px">Live tracking (map, ETA, timeline)</td><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px">GET /api/logistics/deliveries/:id/track</td><td style="padding:7px 10px">delivery.eta_minutes, events[] (status, note, at) · map = Leaflet + OpenStreetMap, driver GPS via websocket in phase 2</td></tr>
+    <tr><td style="padding:7px 10px">My orders / reorder / rate</td><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px">GET /api/orders · PATCH /api/orders/:id/status</td><td style="padding:7px 10px">ratings table is a phase-2 migration (schema note §5)</td></tr>
+  </tbody>
+</table>
+
+<h3 style="font-size:15.5px;margin:16px 0 6px;color:#1c7a3e">3.3 Transport workspace</h3>
+<table style="width:100%;border-collapse:collapse;font-size:13px;margin:6px 0">
+  <thead><tr style="background:#123c22;color:#fff;text-align:left">
+    <th style="padding:7px 10px;font-weight:600;width:34%">UI element</th><th style="padding:7px 10px;font-weight:600;width:33%">Endpoint</th><th style="padding:7px 10px;font-weight:600">Response fields used</th>
+  </tr></thead>
+  <tbody>
+    <tr style="border-bottom:1px solid #e3e8e4"><td style="padding:7px 10px">Requests list + priority tags</td><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px">GET /api/logistics/requests</td><td style="padding:7px 10px">priority comes from AI spoilage-risk at order time; list arrives pre-sorted high→low</td></tr>
+    <tr style="border-bottom:1px solid #e3e8e4"><td style="padding:7px 10px"><b>AI shared-delivery banner</b> → Consolidate</td><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px">POST /api/logistics/optimize</td><td style="padding:7px 10px">suggestions[]: pickup_area, stops, solo_cost_ghs, combined_cost_ghs, saving_ghs</td></tr>
+    <tr style="border-bottom:1px solid #e3e8e4"><td style="padding:7px 10px">Accept a request</td><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px">POST /api/logistics/requests/:id/accept</td><td style="padding:7px 10px">409 if already taken — handle in UI</td></tr>
+    <tr><td style="padding:7px 10px">Active route → "Mark stop done"</td><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px">PATCH /api/logistics/deliveries/:id/status</td><td style="padding:7px 10px">picked_up | in_transit | delivered — mirrors onto order status + SMS notify (phase 2)</td></tr>
+  </tbody>
+</table>
+
+<h3 style="font-size:15.5px;margin:16px 0 6px;color:#1c7a3e">3.4 Admin console</h3>
+<p style="margin:0 0 10px">Admin aggregates existing tables (users, produce_listings, orders, deliveries, payments). Add read-only reporting queries or a <code style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:#eef3ef;padding:1px 5px;border-radius:4px">/api/admin/stats</code> route (role-guarded with <code style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:#eef3ef;padding:1px 5px;border-radius:4px">requireRole('admin')</code>) — the guard middleware already exists in <code style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:#eef3ef;padding:1px 5px;border-radius:4px">src/auth.js</code>.</p>
+
+<h2 style="font-family:'Source Serif 4',serif;font-size:20px;margin:26px 0 8px;color:#123c22">4. The prediction model — how data flows in and out</h2>
+<table style="width:100%;border-collapse:collapse;font-size:13px;margin:6px 0">
+  <thead><tr style="background:#123c22;color:#fff;text-align:left">
+    <th style="padding:7px 10px;font-weight:600">Model</th><th style="padding:7px 10px;font-weight:600">AI service route</th><th style="padding:7px 10px;font-weight:600">Training data source</th><th style="padding:7px 10px;font-weight:600">Surfaces in UI as</th>
+  </tr></thead>
+  <tbody>
+    <tr style="border-bottom:1px solid #e3e8e4"><td style="padding:7px 10px">Dynamic price prediction</td><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px">POST /price</td><td style="padding:7px 10px">price_history table (seeded; grows with every order)</td><td style="padding:7px 10px">harvest card projected price · "below market avg" hint</td></tr>
+    <tr style="border-bottom:1px solid #e3e8e4"><td style="padding:7px 10px">Harvest window</td><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px">POST /harvest</td><td style="padding:7px 10px">planting dates from listings + agronomic baselines</td><td style="padding:7px 10px">"best window Jul 8–15" card</td></tr>
+    <tr style="border-bottom:1px solid #e3e8e4"><td style="padding:7px 10px">Freshness estimation</td><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px">POST /freshness</td><td style="padding:7px 10px">harvest_date vs shelf-life table per crop</td><td style="padding:7px 10px">green bars, "92% fresh" tags, marketplace ranking</td></tr>
+    <tr style="border-bottom:1px solid #e3e8e4"><td style="padding:7px 10px">Spoilage risk</td><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px">POST /spoilage-risk</td><td style="padding:7px 10px">crop shelf-life × delivery ETA (+ weather, phase 2)</td><td style="padding:7px 10px">"high" priority tags on transport requests, farmer alerts</td></tr>
+    <tr><td style="padding:7px 10px">Route consolidation</td><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px">(in Node) /api/logistics/optimize</td><td style="padding:7px 10px">open deliveries grouped by pickup community</td><td style="padding:7px 10px">shared-delivery banner + savings figure</td></tr>
+  </tbody>
+</table>
+<p style="margin:10px 0">The current models are linear-regression baselines trained at service startup on synthetic seasonal data — enough for the pilot demo. The upgrade path is marked in <code style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:#eef3ef;padding:1px 5px;border-radius:4px">ai-service/main.py</code>: swap the <code style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:#eef3ef;padding:1px 5px;border-radius:4px">_train_price_models()</code> fit for XGBoost trained on real <code style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:#eef3ef;padding:1px 5px;border-radius:4px">price_history</code> rows once ~3 months of transactions accumulate. No frontend change needed — the response contract stays identical.</p>
+
+<h2 style="font-family:'Source Serif 4',serif;font-size:20px;margin:26px 0 8px;color:#123c22">5. Example request / response</h2>
+<div style="border:1.5px solid #d7ded8;border-radius:10px;padding:13px 16px;background:#fafcfa;margin:10px 0" data-om-raster>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.75;color:#33413a">
+<span style="color:#1c7a3e"># Buyer places an order, then requests MoMo payment</span><br>
+POST /api/orders&nbsp;&nbsp;&nbsp;&nbsp;Authorization: Bearer &lt;token&gt;<br>
+{ "listing_id": "9b2f…", "quantity": 8 }<br><br>
+→ 201 { "order": { "ref": "AL-2381", "total_ghs": "1120.00", "status": "confirmed" },<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"delivery": { "eta_minutes": 24, "cost_ghs": 95, "priority": "high" } }<br><br>
+POST /api/payments/momo<br>
+{ "order_id": "…", "msisdn": "+233241000010" }<br>
+→ 201 { "payment": { "status": "pending", "external_ref": "SIM-x7k2…" } }<br><br>
+GET /api/payments/SIM-x7k2…/status&nbsp;&nbsp;→ { "payment": { "status": "successful" } }
+</div>
+</div>
+<p style="margin:0 0 10px">A ready-made browser client wrapping all of these is in <code style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:#eef3ef;padding:1px 5px;border-radius:4px">backend/client-example.js</code> — import it and replace the wireframe's simulated handlers one screen at a time.</p>
+
+<h2 style="font-family:'Source Serif 4',serif;font-size:20px;margin:26px 0 8px;color:#123c22">6. Integration order (recommended)</h2>
+<ol style="margin:0 0 12px;padding-left:22px">
+  <li style="margin-bottom:5px"><b>Auth</b> — wire signup/login to /api/auth, store JWT, restore session on load.</li>
+  <li style="margin-bottom:5px"><b>Marketplace read path</b> — GET /api/produce with search/category params; pass browser geolocation for distance ranking.</li>
+  <li style="margin-bottom:5px"><b>Farmer listings</b> — POST /api/produce from the modal; render returned freshness_score.</li>
+  <li style="margin-bottom:5px"><b>Order + payment loop</b> — POST /api/orders → /api/payments/momo → poll status (sandbox simulates success).</li>
+  <li style="margin-bottom:5px"><b>Logistics</b> — requests list, accept, optimize, status updates.</li>
+  <li style="margin-bottom:5px"><b>AI cards</b> — harvest/price/spoilage widgets (pure GETs, independent of the above).</li>
+  <li style="margin-bottom:5px"><b>Phase 2</b> — ratings table, live GPS websocket, SMS/USSD gateway (Hubtel/Arkesel), MoMo production credentials + webhook signature verification.</li>
+</ol>
+
+<div style="border-top:2px solid #123c22;margin-top:22px;padding-top:10px;display:flex;gap:12px;font-size:12px;color:#5c6b60">
+  <span>AgroLink360 · Integration Guide v1.0</span>
+  <span style="flex:1"></span>
+  <span>Full API reference: backend/README.md</span>
+</div>
+
+</div>
+</x-import>
+</x-dc>
+<script>
+(async () => {
+  if (!document.title || !document.title.trim()) document.title = "AgroLink360 Integration Guide";
+  // Prepend so page-supplied @page / break rules (deck-stage's margin:0,
+  // author CSS) keep source-order precedence over the baseline.
+  const baseCss = document.createElement('style');
+  baseCss.textContent = "@media print {\n  figure, table { break-inside: avoid; }\n  *, *::before, *::after {\n    print-color-adjust: exact; -webkit-print-color-adjust: exact;\n    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;\n    animation-delay: -99s !important; animation-duration: .001s !important;\n    animation-iteration-count: 1 !important; animation-fill-mode: both !important;\n    animation-play-state: running !important; transition-duration: 0s !important;\n  }\n}";
+  document.head.prepend(baseCss);
+  if (document.readyState === 'loading') {
+    await new Promise((r) => document.addEventListener('DOMContentLoaded', r, { once: true }));
+  }
+  let ds = document.querySelector('deck-stage');
+  // whenDefined never resolves when nothing registers the element, so only
+  // await it when a <deck-stage> tag exists (and race a timeout regardless).
+  if (ds && !customElements.get('deck-stage')) {
+    try {
+      await Promise.race([
+        customElements.whenDefined('deck-stage'),
+        new Promise((r) => setTimeout(r, 3000)),
+      ]);
+    } catch (e) {}
+    ds = document.querySelector('deck-stage');
+  }
+  // dc-runtime assigns window.DCLogic at init and mounts into #dc-root on
+  // DOMContentLoaded; settle on that subtree so React has rendered before
+  // print(). Non-DC pages fall through to weighing body.
+  const isDc = !ds && 'DCLogic' in window;
+  const settleRoot = ds || (isDc ? document.getElementById('dc-root') : null) || document.body;
+  if (settleRoot) {
+    // Weigh only content children — skip script/style/template so inline
+    // Babel/CSS doesn't register as stable "content" before the framework
+    // has mounted anything.
+    const MEDIA = 'img,svg,canvas,video,picture,iframe,embed,object';
+    const weigh = () => {
+      let text = 0, media = 0;
+      for (const c of settleRoot.children) {
+        const t = c.tagName;
+        if (t === 'SCRIPT' || t === 'STYLE' || t === 'TEMPLATE') continue;
+        text += (c.textContent || '').trim().length;
+        media += c.querySelectorAll(MEDIA).length + (c.matches(MEDIA) ? 1 : 0);
+      }
+      return text + media * 100;
+    };
+    // "Non-zero and stable" alone is not sufficient to mean rendered: generic
+    // body can carry a static shell while async main content is pending, and
+    // #dc-root can carry the root DC's static text while child refs are still
+    // .sc-placeholder boxes. Gate generic on readyState 'complete', and never
+    // accept stability while a dc-runtime placeholder is present.
+    const isGeneric = settleRoot === document.body;
+    const deadline = Date.now() + 15000;
+    let last = -1, stable = 0;
+    while (Date.now() < deadline) {
+      const n = weigh();
+      const ready =
+        (!isGeneric || document.readyState === 'complete') &&
+        !settleRoot.querySelector('.sc-placeholder');
+      if (n > 0 && n === last && ready) { if (++stable >= 2) break; } else { stable = 0; }
+      last = n;
+      await new Promise((r) => setTimeout(r, 250));
+    }
+  }
+  // Project support.js may predate runtime default-seeding; push via bridge.
+  if (isDc && window.__dcSetProps && window.__dcRootName) {
+    try {
+      const dpEl = document.querySelector('script[data-dc-script]');
+      const meta = JSON.parse((dpEl && dpEl.getAttribute('data-props')) || '{}');
+      const bag = {};
+      for (const k in meta)
+        if (k[0] !== '$' && meta[k] && meta[k].default !== undefined)
+          bag[k] = meta[k].default;
+      if (Object.keys(bag).length) {
+        window.__dcSetProps(window.__dcRootName(), bag);
+        await new Promise((r) => setTimeout(r, 50));
+      }
+    } catch (e) {}
+  }
+  // Reveal content gated on scroll or visibility before printing. Lazy <img>,
+  // IntersectionObserver fade-ins, and collapsed <details> don't render while
+  // off-screen, so a long page would print with them blank or closed. Open
+  // every <details>, force native-lazy images eager, and scroll the document
+  // through its full height to trip lazy-load + IO; then wait (bounded) for the
+  // newly-triggered images. Inert for deck-stage (slides aren't scroll-gated).
+  try {
+    for (const d of document.querySelectorAll('details')) d.open = true;
+    for (const img of document.querySelectorAll('img[loading="lazy"]'))
+      img.loading = 'eager';
+    const scroller = document.scrollingElement || document.documentElement;
+    const full = Math.max(scroller.scrollHeight, document.body.scrollHeight);
+    const step = window.innerHeight || 800;
+    for (let y = 0; y <= full; y += step) {
+      window.scrollTo(0, y);
+      await new Promise((r) => requestAnimationFrame(r));
+    }
+    window.scrollTo(0, 0);
+    await Promise.race([
+      Promise.all(
+        [...document.images].map((img) =>
+          img.complete
+            ? null
+            : new Promise((res) => {
+                img.addEventListener('load', res, { once: true });
+                img.addEventListener('error', res, { once: true });
+              })
+        )
+      ),
+      new Promise((r) => setTimeout(r, 4000)),
+    ]);
+  } catch (e) {}
+  try { await document.fonts.ready; } catch (e) {}
+  // Jump every animation to its end state so print() never captures a slide
+  // mid-entrance. Ordering matters: the 0s-transition style must be live
+  // BEFORE data-deck-active is set so attribute-keyed transitions don't
+  // start a (now-0s) run from the pre-active base.
+  const st = document.createElement('style');
+  st.textContent = '*,*::before,*::after{animation-delay:-99s !important;animation-duration:.001s !important;animation-iteration-count:1 !important;animation-fill-mode:both !important;animation-play-state:running !important;transition-duration:0s !important}';
+  document.head.appendChild(st);
+  for (const d of document.querySelectorAll('deck-stage')) {
+    for (const c of d.children) {
+      const t = c.tagName;
+      if (t === 'SCRIPT' || t === 'STYLE' || t === 'TEMPLATE') continue;
+      c.setAttribute('data-deck-active', '');
+    }
+  }
+  // Re-append deck-stage's @page last so no author @page can add a margin and
+  // spill each full-bleed slide onto two sheets. Backstop for old copies.
+  if (ds) {
+    let pg = document.getElementById('deck-stage-print-page');
+    if (!pg) {
+      pg = document.createElement('style');
+      pg.textContent = '@page{size:' + (+ds.getAttribute('width') || 1920) +
+        'px ' + (+ds.getAttribute('height') || 1080) + 'px;margin:0}';
+    }
+    document.body.appendChild(pg);
+  }
+  try {
+    const sweep = () => {
+      for (const a of document.getAnimations()) {
+        try { a.finish(); } catch (e) {
+          try { a.currentTime = (a.effect && a.effect.getComputedTiming().duration) || 0; a.pause(); } catch (e2) {}
+        }
+      }
+    };
+    sweep();
+    await new Promise((r) => requestAnimationFrame(r));
+    sweep();
+    await new Promise((r) => requestAnimationFrame(r));
+  } catch (e) {}
+  // Size the PDF page to the rendered design unless the file opted into
+  // standard paper via @page{size:letter|A4|…}. Decks own their own @page.
+  // Wrappers (body, …) lose padding+margin so the frame sits at (0,0); the
+  // frame itself loses only margin — its padding is INSIDE the measured
+  // rect and must stay, or content shifts and leaves a gap at bottom/right.
+  var __m = null;
+  try { __m = (() => {
+  var STAMP = true;
+  var docEl = document.documentElement;
+  var doc = { width: docEl.scrollWidth, height: docEl.scrollHeight };
+
+  var ds = document.querySelector('deck-stage');
+  if (ds) {
+    var dw = Number(ds.getAttribute('width')) || 1920;
+    var dh = Number(ds.getAttribute('height')) || 1080;
+    var n = typeof ds.length === 'number' ? ds.length : ds.children.length;
+    var idx = typeof ds.index === 'number' ? ds.index : 0;
+    var frames = [];
+    for (var i = 0; i < n; i++) frames.push({ left: 0, top: 0, width: dw, height: dh });
+    return { kind: 'deck', source: 'declared', doc: doc, frames: frames,
+      authored: frames.map(function(){return{width:true,height:true}}),
+      deck: { width: dw, height: dh, slideCount: n, index: idx },
+      signals: { paperPage: false, pxPage: false } };
+  }
+
+  // Declared kind: a doc-page tag names the kind outright, so no signal
+  // heuristics run (like the deck branch above, signals report false —
+  // they describe inferred classifications only). The tag alone is not
+  // trusted: the element must have upgraded (shadowRoot present), so a
+  // leftover tag whose script was deleted falls through to the heuristics
+  // that handle plain markup.
+  var stageSx = window.scrollX || 0, stageSy = window.scrollY || 0;
+  var dp = document.querySelector('doc-page');
+  if (dp && dp.shadowRoot) {
+    // Crop to the sheet, not the host — the desk around it is screen-only
+    // chrome that must not land in PNG exports.
+    var sheet = dp.shadowRoot.querySelector('.sheet');
+    var sr = (sheet || dp).getBoundingClientRect();
+    return { kind: 'paper-doc', source: 'declared', doc: doc,
+      frames: [{ left: sr.left + stageSx, top: sr.top + stageSy,
+        width: sr.width, height: sr.height }],
+      authored: [{ width: false, height: false }],
+      signals: { paperPage: false, pxPage: false } };
+  }
+  var paperPage = false, pxPage = false;
+  var eachRule = function (fn) {
+    for (var s = 0; s < document.styleSheets.length; s++) {
+      var rs; try { rs = document.styleSheets[s].cssRules; } catch (e) { continue; }
+      for (var r = 0; r < rs.length; r++) {
+        fn(rs[r]);
+        if (rs[r].cssRules) for (var n = 0; n < rs[r].cssRules.length; n++) fn(rs[r].cssRules[n]);
+      }
+    }
+  };
+  eachRule(function (r) {
+    if (r.type !== 6) return;
+    var m = /\bsize\s*:\s*([^;}]+)/i.exec(r.cssText || '');
+    if (!m) return;
+    if (/\b(letter|a[3-5]|legal|ledger)\b/i.test(m[1])) paperPage = true;
+    if (/\d+(?:\.\d+)?px\b/i.test(m[1])) pxPage = true;
+  });
+  var signals = { paperPage: paperPage, pxPage: pxPage };
+
+  var pxVal = function (v) {
+    var m = /^(\d+(?:\.\d+)?)px$/.exec(v || ''); return m ? +m[1] : 0;
+  };
+  var authoredPx = function (el, prop) {
+    if (pxVal(el.style[prop])) return true;
+    var attr = el.getAttribute(prop);
+    if (attr && /^\d+$/.test(attr)) return true;
+    var hit = false;
+    eachRule(function (r) {
+      if (hit || r.type !== 1 || !r.style) return;
+      try { if (el.matches(r.selectorText) && pxVal(r.style[prop])) hit = true; } catch (e) {}
+    });
+    return hit;
+  };
+
+  var el = document.body, rootPxW = false;
+  for (;;) {
+    var kids = [];
+    for (var c = 0; c < el.children.length; c++) {
+      var t = el.children[c].tagName;
+      if (t !== 'SCRIPT' && t !== 'STYLE' && t !== 'TEMPLATE') kids.push(el.children[c]);
+    }
+    if (kids.length !== 1 || !(kids[0] instanceof HTMLElement)) break;
+    if (STAMP) el.setAttribute('data-om-frame-wrap', '');
+    el = kids[0];
+    rootPxW = authoredPx(el, 'width');
+    if (rootPxW) break;
+  }
+  if (!rootPxW) rootPxW = authoredPx(el, 'width');
+
+  // @page{size:letter} alone is a flowing doc; with a px-width root it's a
+  // fixed sheet pretending to be paper — fall through and size to render.
+  if (paperPage && !rootPxW) {
+    return { kind: 'paper-doc', source: 'inferred', doc: doc, signals: signals,
+      frames: [{ left: 0, top: 0, width: doc.width, height: doc.height }],
+      authored: [{ width: false, height: false }] };
+  }
+
+  var sx = window.scrollX || 0, sy = window.scrollY || 0;
+  var rectOf = function (e) {
+    var r = e.getBoundingClientRect();
+    var oy; try { oy = getComputedStyle(e).overflowY; } catch (err) {}
+    var h = oy === 'visible' ? Math.max(r.height, e.scrollHeight || 0) : r.height;
+    return { left: r.left + sx, top: r.top + sy, width: r.width, height: h };
+  };
+
+  // Multi-frame: ≥2 visible non-fixed children, each with authored px width
+  // AND height, all within ±2px of each other. Off unless the page opts in
+  // via data-om-multi-frame on the stop element — guards against card grids
+  // and pricing tables that match the geometry but aren't separate canvases.
+  if (el.hasAttribute('data-om-multi-frame')) {
+    var cands = [];
+    for (var k = 0; k < el.children.length; k++) {
+      var ch = el.children[k];
+      var cs; try { cs = getComputedStyle(ch); } catch (e) { continue; }
+      if (cs.display === 'none' || cs.visibility === 'hidden' || cs.position === 'fixed') continue;
+      var rc = rectOf(ch);
+      if (rc.width < 2 || rc.height < 2) continue;
+      if (!authoredPx(ch, 'width') || !authoredPx(ch, 'height')) continue;
+      cands.push(rc);
+    }
+    if (cands.length >= 2) {
+      var w0 = cands[0].width, h0 = cands[0].height, ok = true;
+      for (var q = 1; q < cands.length; q++)
+        if (Math.abs(cands[q].width - w0) > 2 || Math.abs(cands[q].height - h0) > 2) ok = false;
+      if (ok) return { kind: 'multi-frame', source: 'inferred', doc: doc, signals: signals,
+        frames: cands, authored: cands.map(function(){return{width:true,height:true}}) };
+    }
+  }
+
+  if (STAMP) el.setAttribute('data-om-frame', '');
+  return { kind: 'single-canvas', source: 'inferred', doc: doc, signals: signals,
+    frames: [rectOf(el)],
+    authored: [{ width: rootPxW, height: authoredPx(el, 'height') }] };
+})(); } catch (e) {}
+  var frame = null;
+  if (__m && __m.kind === 'single-canvas') {
+    var f = __m.frames && __m.frames[0];
+    if (f && f.width >= 200 && f.height >= 200) {
+      frame = f;
+      var fst = document.createElement('style');
+      fst.textContent = '@media print{@page{size:' + Math.ceil(f.width) + 'px ' +
+        Math.ceil(f.height) + 'px;margin:0}' +
+        'html,body,[data-om-frame-wrap]{padding:0!important;margin:0!important;background:none!important}' +
+        '[data-om-frame]{margin:0!important}}';
+      document.body.appendChild(fst);
+    }
+  }
+  // Relax break-inside on oversized elements. An element taller than a
+  // printable page can't honor break-inside: avoid — browsers either overflow
+  // it or push it whole to the next page, leaving a blank gap, then break it
+  // anyway at an arbitrary point. After the final layout (content revealed,
+  // animations jumped), find elements taller than a page that still compute
+  // break-inside: avoid and reset them to auto, so the browser breaks them at
+  // their children's boundaries instead (children keep their own avoid). PAGE_PX
+  // is a conservative portrait estimate at 96 CSS px/in — Letter/A4 usable
+  // height minus our 0.5in margins — so only clearly-oversized elements are
+  // touched and under-page elements still stay whole. Skipped for decks (slides
+  // are sized to the page) and for fixed-size canvases (frame set, or an author
+  // px-based @page) — runs as before for flowing docs on letter/A4.
+  try {
+    if (!ds && !frame && !(__m && __m.signals && __m.signals.pxPage)) {
+      const PAGE_PX = 1024;
+      // Our print defaults add a real @page margin only when the source has
+      // no @page of its own; computed style can't tell us (it reports screen
+      // media), so read the injected rule directly.
+      const defaults = document.querySelector('style[data-omelette-print-defaults]');
+      const pageInset = /@page\s*\{[^}]*margin/.test(defaults ? defaults.textContent || '' : '');
+      const SEL = 'section,article,figure,table,pre,blockquote,[class~="card" i],[class~="page" i],[class~="sheet" i]';
+      for (const el of document.body.querySelectorAll(SEL)) {
+        if (el instanceof HTMLElement && el.offsetHeight > PAGE_PX) {
+          el.setAttribute('data-om-oversized', '');
+          // Fake-paged docs simulate sheets with over-tall break-after:page
+          // boxes; honoring the break spills half-blank pages and ends a
+          // colored box mid-sheet. Flow them, and (only when we own the page
+          // inset) drop the redundant padding/background via the rule below.
+          const cs = getComputedStyle(el);
+          if (cs.breakAfter === 'page' || cs.pageBreakAfter === 'always') {
+            el.setAttribute('data-om-fakepage', '');
+          }
+        }
+      }
+      const ost = document.createElement('style');
+      ost.textContent = '@media print{' +
+        '[data-om-oversized]{break-inside:auto !important;page-break-inside:auto !important}' +
+        '[data-om-fakepage]{break-after:auto !important;page-break-after:auto !important}' +
+        (pageInset ? '[data-om-fakepage]{padding:0 !important;background:none !important}' : '') +
+        '}';
+      document.head.appendChild(ost);
+    }
+  } catch (e) {}
+  // macOS Preview renders Skia-PDF Luminosity soft-masks as opaque grey boxes;
+  // swap the CSS that triggers them for Preview-safe forms.
+  try {
+    for (const el of document.body.querySelectorAll('*')) {
+      const cs = getComputedStyle(el);
+
+      if (cs.boxShadow !== 'none' && cs.filter === 'none') {
+        const outs = [], kept = [];
+        for (const s of cs.boxShadow.split(/,(?![^(]*[)])/)) {
+          const t = s.trim();
+          const m = t.match(/^(rgba?[(][^)]+[)]) (-?[0-9.]+px) (-?[0-9.]+px) ([0-9.]+px) -?[0-9.]+px$/);
+          if (m && parseFloat(m[4]) > 0) outs.push('drop-shadow(' + m[2] + ' ' + m[3] + ' ' + m[4] + ' ' + m[1] + ')');
+          else kept.push(t);
+        }
+        if (outs.length) {
+          el.style.setProperty('filter', outs.join(' '), 'important');
+          el.style.setProperty('box-shadow', kept.join(', ') || 'none', 'important');
+        }
+      }
+
+      const mask = cs.maskImage && cs.maskImage !== 'none' ? cs.maskImage : cs.webkitMaskImage;
+      if (mask && mask !== 'none' && cs.filter === 'none') el.style.setProperty('filter', 'opacity(1)', 'important');
+    }
+  } catch (e) {}
+  setTimeout(() => { try { window.print(); } catch (e) {} }, 200);
+})();
+</script>
+</body>
+</html>

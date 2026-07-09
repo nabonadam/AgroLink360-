@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<template id="__bundler_thumbnail" data-bg-color="#f0eee9">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#f0eee9"/>
+    <!-- phone frame -->
+    <rect x="330" y="180" width="240" height="440" rx="32" fill="#ffffff" stroke="#1a1a1a" stroke-width="10"/>
+    <rect x="362" y="240" width="176" height="90" rx="12" fill="none" stroke="#999" stroke-width="6" stroke-dasharray="14 10"/>
+    <rect x="362" y="356" width="176" height="34" rx="10" fill="#2f9e57"/>
+    <rect x="362" y="412" width="176" height="34" rx="10" fill="none" stroke="#1a1a1a" stroke-width="6"/>
+    <line x1="362" y1="560" x2="538" y2="560" stroke="#1a1a1a" stroke-width="6"/>
+    <!-- desktop frame -->
+    <rect x="620" y="240" width="320" height="220" rx="16" fill="#ffffff" stroke="#1a1a1a" stroke-width="10"/>
+    <line x1="620" y1="290" x2="940" y2="290" stroke="#1a1a1a" stroke-width="8"/>
+    <circle cx="650" cy="266" r="8" fill="none" stroke="#1a1a1a" stroke-width="5"/>
+    <circle cx="678" cy="266" r="8" fill="none" stroke="#1a1a1a" stroke-width="5"/>
+    <rect x="644" y="312" width="80" height="120" rx="10" fill="none" stroke="#999" stroke-width="5" stroke-dasharray="12 9"/>
+    <rect x="744" y="312" width="172" height="52" rx="10" fill="#2f9e57"/>
+    <rect x="744" y="382" width="172" height="50" rx="10" fill="none" stroke="#1a1a1a" stroke-width="5"/>
+    <rect x="620" y="470" width="320" height="26" rx="13" fill="#1a1a1a"/>
+  </svg>
+</template>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Architects+Daughter&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f0eee9;font-family:'Patrick Hand',system-ui,sans-serif;color:#1a1a1a}
+.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}
+.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 8px}
+.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}
+.dv-tname{font:600 13px/1.2 system-ui,sans-serif;color:#1a1a1a}
+.dv-sub{font:400 12px/1.5 system-ui,sans-serif;color:rgba(0,0,0,.55);margin:0 0 24px;max-width:720px}
+.dv-opts{display:flex;flex-wrap:wrap;gap:44px;align-items:flex-start}
+.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}
+.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}
+.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 system-ui,sans-serif;color:rgba(0,0,0,.55)}
+.dv-next{margin:26px 0 0;font:12px/1.5 system-ui,sans-serif;color:rgba(0,0,0,.5)}
+.dv-opt:target .dv-oid{background:#2a78d6;color:#fff}
+
+/* ── wireframe kit ── */
+.flowrow{display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap}
+.screen{width:270px;flex:none;display:flex;flex-direction:column;gap:6px;scroll-margin:60px}
+.screen:target .phone{outline:3px solid #2a78d6;outline-offset:3px}
+.slabel{font-family:'Architects Daughter',cursive;font-size:13px;color:rgba(0,0,0,.6);display:flex;align-items:center;gap:7px}
+.snum{display:inline-flex;width:20px;height:20px;border:1.5px solid #1a1a1a;border-radius:50%;align-items:center;justify-content:center;font-size:11px;background:#fff}
+.phone{background:#fff;border:2px solid #1a1a1a;border-radius:24px;padding:12px 11px 10px;display:flex;flex-direction:column;gap:8px;min-height:480px;box-shadow:3px 3px 0 rgba(0,0,0,.12)}
+.statusbar{display:flex;justify-content:space-between;font-size:11px;color:#999;padding:0 4px}
+.wf-tap{display:block;text-decoration:none;color:inherit;cursor:pointer;border-radius:10px}
+.wf-tap:hover{outline:2.5px solid #2f9e57;outline-offset:2px;background:#f3faf5}
+.box{border:1.5px dashed #999;border-radius:10px;padding:9px 10px}
+.solid{border:1.5px solid #1a1a1a;border-radius:10px;padding:9px 10px}
+.btn{border:2px solid #1a1a1a;border-radius:10px;text-align:center;padding:8px;font-size:15px}
+.btn.primary{background:#1a1a1a;color:#fff}
+.btn.accent{background:#2f9e57;border-color:#2f9e57;color:#fff}
+.imgph{border:1.5px dashed #999;border-radius:10px;position:relative;background:linear-gradient(to top right,transparent calc(50% - 1px),#ccc,transparent calc(50% + 1px)),linear-gradient(to bottom right,transparent calc(50% - 1px),#ccc,transparent calc(50% + 1px))}
+.h1{font-size:19px;line-height:1.1}
+.small{font-size:12.5px;color:#777}
+.row{display:flex;gap:8px;align-items:center}
+.grow{flex:1}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1.5px solid #1a1a1a;border-radius:20px;padding:2px 11px;font-size:13px}
+.chip.on{background:#1a1a1a;color:#fff}
+.nav{display:flex;border-top:2px solid #1a1a1a;padding-top:7px;margin-top:auto;gap:2px}
+.nav a{flex:1;text-align:center;font-size:12.5px;color:#888;text-decoration:none;border-radius:8px;padding:4px 0}
+.nav a:hover{outline:2px solid #2f9e57}
+.nav a.on{color:#1a1a1a;font-weight:bold}
+.navic{display:block;width:18px;height:14px;border:1.5px solid currentColor;border-radius:4px;margin:0 auto 2px}
+.bar{height:9px;border-radius:6px;background:#e4e4e0}
+.bar>i{display:block;height:100%;border-radius:6px;background:#2f9e57}
+.note{font-family:'Architects Daughter',cursive;font-size:12px;color:#b05c2a;line-height:1.35}
+.input{border:1.5px solid #999;border-radius:10px;padding:8px 10px;color:#aaa;font-size:14px}
+.kpi{flex:1;border:1.5px dashed #999;border-radius:10px;padding:7px 9px;text-align:center}
+.kpi b{display:block;font-size:18px}
+.kpi span{font-size:11px;color:#888}
+.dot{width:10px;height:10px;border-radius:50%;background:#2f9e57;flex:none}
+.dot.o{background:#fff;border:1.5px solid #999}
+.steprow{display:flex;gap:9px;align-items:flex-start;font-size:13.5px}
+.tag{font-size:11px;border:1.5px solid #1a1a1a;border-radius:20px;padding:1px 8px}
+.tag.warn{border-color:#b05c2a;color:#b05c2a}
+/* ── desktop frames ── */
+.screenD{flex:none;display:flex;flex-direction:column;gap:6px;scroll-margin:60px;max-width:100%}
+.screenD:target .desk{outline:3px solid #2a78d6;outline-offset:3px}
+.desk{width:780px;max-width:100%;background:#fff;border:2px solid #1a1a1a;border-radius:12px;box-shadow:3px 3px 0 rgba(0,0,0,.12);overflow:hidden}
+.dtop{display:flex;align-items:center;gap:10px;border-bottom:2px solid #1a1a1a;padding:8px 12px}
+.cdot{width:10px;height:10px;border-radius:50%;border:1.5px solid #1a1a1a;flex:none}
+.rtabs{display:flex;gap:4px;border:1.5px solid #1a1a1a;border-radius:9px;padding:2px}
+.rtabs a{padding:2px 10px;font-size:12.5px;border-radius:7px;color:#888;text-decoration:none}
+.rtabs a.on{background:#1a1a1a;color:#fff}
+.rtabs a:hover{outline:2px solid #2f9e57}
+.dwrap{display:flex;min-height:400px}
+.dside{width:138px;border-right:2px solid #1a1a1a;padding:10px 8px;display:flex;flex-direction:column;gap:5px}
+.dside a{display:block;padding:6px 9px;border-radius:8px;font-size:13.5px;color:#888;text-decoration:none}
+.dside a.on{background:#1a1a1a;color:#fff}
+.dside a:hover{outline:2px solid #2f9e57}
+.dbody{flex:1;padding:12px;display:flex;flex-direction:column;gap:9px;min-width:0}
+.cols{display:flex;gap:9px}
+.minibars{display:flex;align-items:flex-end;gap:8px;height:74px;padding-top:4px}
+.minibars i{flex:1;background:#e4e4e0;border-radius:4px 4px 0 0}
+.minibars i.hi{background:#2f9e57}
+.trow{display:flex;gap:8px;align-items:center;border-top:1.5px dashed #ccc;padding:7px 2px;font-size:13px}
+</style>
+</helmet>
+
+<section class="dv-turn" id="t2">
+  <div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">Desktop web portal — same product, responsive (mobile screens in <a class="dv-oid" href="#t1">1</a> are what it collapses to)</span></div>
+  <p class="dv-sub">Per the architecture's presentation layer: <b>Web Portal (React)</b> for all roles + admin, alongside the mobile app and USSD. One key desktop screen per role — the top-bar role tabs switch between them, and side-nav items jump to the matching mobile screen so you can see how each page collapses on a phone.</p>
+
+  <div class="dv-opts">
+
+    <!-- ══ 2a FARMER DESKTOP ══ -->
+    <div class="dv-opt" id="2a">
+      <div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>Farmer dashboard — collapses to <a class="dv-oid" href="#1b">1b</a> on mobile</div>
+      <div class="screenD" id="scr-d-farmer" data-screen-label="Desktop farmer">
+        <div class="desk">
+          <div class="dtop">
+            <span class="cdot"></span><span class="cdot"></span><span class="cdot"></span>
+            <b style="font-size:14px">AgroLink360</b>
+            <div class="rtabs"><a class="on" href="#scr-d-farmer">Farmer</a><a href="#scr-d-market">Buyer</a><a href="#scr-d-transport">Transport</a><a href="#scr-d-admin">Admin</a></div>
+            <div class="input grow" style="padding:4px 10px;font-size:12.5px">🔍 search…</div>
+            <div class="imgph" style="width:28px;height:28px;border-radius:50%"></div>
+          </div>
+          <div class="dwrap">
+            <div class="dside">
+              <a class="on" href="#scr-d-farmer">Dashboard</a>
+              <a href="#scr-fproduce">My Produce</a>
+              <a href="#scr-forders">Orders</a>
+              <a href="#scr-wallet">Wallet</a>
+              <div class="box" style="margin-top:auto;font-size:11.5px;color:#777">USSD live<br><b style="color:#1a1a1a">*920*36#</b></div>
+            </div>
+            <div class="dbody">
+              <div class="row"><div class="grow"><b style="font-size:17px">Akwaaba, Yaw</b><div class="small">Ejisu · Tue 1 Jul</div></div><a class="wf-tap btn accent" href="#scr-newlisting" style="padding:6px 14px;font-size:14px">+ List produce</a></div>
+              <div class="row">
+                <a class="wf-tap kpi" href="#scr-fproduce"><b>12</b><span>listings</span></a>
+                <a class="wf-tap kpi" href="#scr-forders"><b>5</b><span>pending orders</span></a>
+                <a class="wf-tap kpi" href="#scr-wallet"><b>GH₵ 8,420</b><span>June revenue</span></a>
+                <a class="wf-tap kpi" href="#scr-fproduce" style="border-color:#b05c2a"><b style="color:#b05c2a">2</b><span>spoilage alerts</span></a>
+              </div>
+              <div class="cols">
+                <div class="solid grow">
+                  <div class="row" style="font-size:13px"><span class="grow"><b>Revenue — 6 months</b></span><span class="tag" style="border-color:#2f9e57;color:#2f9e57">+18%</span></div>
+                  <div class="minibars"><i style="height:40%"></i><i style="height:52%"></i><i style="height:47%"></i><i style="height:64%"></i><i style="height:76%"></i><i class="hi" style="height:92%"></i></div>
+                </div>
+                <div class="solid" style="width:230px;flex:none">
+                  <div class="row"><span class="tag">AI</span><b style="font-size:13.5px">Harvest assistant</b></div>
+                  <div class="small" style="margin-top:4px">Tomatoes best window<br><b style="color:#1a1a1a;font-size:16px">Jul 8 – 15</b><br>32 crates · GH₵ 165 · 86% conf.</div>
+                </div>
+              </div>
+              <div class="solid" style="padding:6px 10px">
+                <div class="row" style="font-size:13px"><b class="grow">Recent orders</b><a class="wf-tap" href="#scr-forders" style="font-size:12px;color:#2f9e57">view all →</a></div>
+                <a class="wf-tap trow" href="#scr-tracking"><span class="grow"><b>Kumasi Fresh Foods</b> · Tomatoes · 8 crates</span><b>1,120</b><span class="tag">in transit</span></a>
+                <a class="wf-tap trow" href="#scr-forders"><span class="grow"><b>Golden Tulip Hotel</b> · Garden eggs · 4 crates</span><b>520</b><span class="tag">confirmed</span></a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="note">side-nav items jump to the matching mobile screens in <a class="dv-oid" href="#1b">1b</a> — same flows, one codebase</div>
+      </div>
+    </div>
+
+    <!-- ══ 2b BUYER DESKTOP ══ -->
+    <div class="dv-opt" id="2b">
+      <div class="dv-olabel"><a class="dv-oid" href="#2b">2b</a>Buyer marketplace — collapses to <a class="dv-oid" href="#1c">1c</a></div>
+      <div class="screenD" id="scr-d-market" data-screen-label="Desktop marketplace">
+        <div class="desk">
+          <div class="dtop">
+            <span class="cdot"></span><span class="cdot"></span><span class="cdot"></span>
+            <b style="font-size:14px">AgroLink360</b>
+            <div class="rtabs"><a href="#scr-d-farmer">Farmer</a><a class="on" href="#scr-d-market">Buyer</a><a href="#scr-d-transport">Transport</a><a href="#scr-d-admin">Admin</a></div>
+            <div class="input grow" style="padding:4px 10px;font-size:12.5px">🔍 tomatoes, pepper…</div>
+            <div class="imgph" style="width:28px;height:28px;border-radius:50%"></div>
+          </div>
+          <div class="dwrap">
+            <div class="dside">
+              <a class="on" href="#scr-d-market">Marketplace</a>
+              <a href="#scr-tracking">Live tracking</a>
+              <a href="#scr-borders">My orders</a>
+              <div class="box" style="margin-top:auto;font-size:11.5px;color:#777">filters<br>distance ▾ · price ▾<br>freshness ▾</div>
+            </div>
+            <div class="dbody">
+              <div class="row"><b style="font-size:17px" class="grow">Fresh near Kumasi</b><span class="small">ranked by AI freshness + distance</span></div>
+              <div class="chips"><span class="chip on">All</span><span class="chip">Tomatoes</span><span class="chip">Peppers</span><span class="chip">Leafy</span><span class="chip">Roots</span><span class="chip">Onions</span></div>
+              <div class="cols">
+                <a class="wf-tap solid grow" href="#scr-product"><div class="imgph" style="height:56px;margin-bottom:6px"></div><b style="font-size:13.5px">Tomatoes</b> <span class="tag" style="border-color:#2f9e57;color:#2f9e57">92%</span><div class="small">Yaw M. · Ejisu · 8 km</div><div class="row" style="font-size:13px"><span class="grow">★4.8</span><b>140/crate</b></div></a>
+                <a class="wf-tap solid grow" href="#scr-product"><div class="imgph" style="height:56px;margin-bottom:6px"></div><b style="font-size:13.5px">Sweet Pepper</b> <span class="tag" style="border-color:#2f9e57;color:#2f9e57">95%</span><div class="small">Kwabena O. · Offinso · 15 km</div><div class="row" style="font-size:13px"><span class="grow">★4.9</span><b>115/crate</b></div></a>
+                <a class="wf-tap solid grow" href="#scr-product"><div class="imgph" style="height:56px;margin-bottom:6px"></div><b style="font-size:13.5px">Garden Eggs</b> <span class="tag" style="border-color:#2f9e57;color:#2f9e57">88%</span><div class="small">Adwoa B. · Akomadan · 12 km</div><div class="row" style="font-size:13px"><span class="grow">★4.6</span><b>130/crate</b></div></a>
+                <a class="wf-tap solid grow" href="#scr-product"><div class="imgph" style="height:56px;margin-bottom:6px"></div><b style="font-size:13.5px">Okro</b> <span class="tag" style="border-color:#2f9e57;color:#2f9e57">84%</span><div class="small">Yaw M. · Ejisu · 8 km</div><div class="row" style="font-size:13px"><span class="grow">★4.7</span><b>60/basket</b></div></a>
+              </div>
+              <a class="wf-tap box" href="#scr-tracking" style="font-size:13px"><b>1 order in transit</b> — #AL-2381 arrives in ~24 min · track →</a>
+            </div>
+          </div>
+        </div>
+        <div class="note">4-across grid → 1-column cards on phone (<a class="dv-oid" href="#1c">1c</a> screen 9) · card click opens product + checkout</div>
+      </div>
+    </div>
+
+    <!-- ══ 2c TRANSPORT DESKTOP ══ -->
+    <div class="dv-opt" id="2c">
+      <div class="dv-olabel"><a class="dv-oid" href="#2c">2c</a>Transport dispatch — collapses to <a class="dv-oid" href="#1d">1d</a></div>
+      <div class="screenD" id="scr-d-transport" data-screen-label="Desktop transport">
+        <div class="desk">
+          <div class="dtop">
+            <span class="cdot"></span><span class="cdot"></span><span class="cdot"></span>
+            <b style="font-size:14px">AgroLink360</b>
+            <div class="rtabs"><a href="#scr-d-farmer">Farmer</a><a href="#scr-d-market">Buyer</a><a class="on" href="#scr-d-transport">Transport</a><a href="#scr-d-admin">Admin</a></div>
+            <div class="grow"></div>
+            <span class="tag" style="border-color:#2f9e57;color:#2f9e57">● available</span>
+            <div class="imgph" style="width:28px;height:28px;border-radius:50%"></div>
+          </div>
+          <div class="dwrap">
+            <div class="dside">
+              <a class="on" href="#scr-d-transport">Requests</a>
+              <a href="#scr-route">Active route</a>
+              <a href="#scr-wallet">Earnings</a>
+            </div>
+            <div class="dbody">
+              <a class="wf-tap solid" href="#scr-consolidate" style="border-style:dashed;background:#fdf6ea"><div class="row"><span class="tag warn">AI</span><span class="grow" style="font-size:13.5px"><b>Shared-delivery match:</b> combine 3 Ejisu pickups → save GH₵ 70 · 2 fewer trips</span><b>Consolidate →</b></div></a>
+              <div class="cols">
+                <div class="grow" style="display:flex;flex-direction:column;gap:7px">
+                  <a class="wf-tap solid" href="#scr-route"><div class="row" style="font-size:13px"><span class="grow"><b>Ejisu → Kumasi Central</b> <span class="tag warn">high</span><br><span class="small">8 crates tomatoes · 14 km</span></span><b>GH₵ 95</b></div></a>
+                  <a class="wf-tap solid" href="#scr-route"><div class="row" style="font-size:13px"><span class="grow"><b>Offinso → Tech Junction</b> <span class="tag warn">high</span><br><span class="small">6 crates pepper · 22 km</span></span><b>GH₵ 120</b></div></a>
+                  <a class="wf-tap solid" href="#scr-route"><div class="row" style="font-size:13px"><span class="grow"><b>Akomadan → Kumasi</b><br><span class="small">5 sacks onion · 38 km</span></span><b>GH₵ 180</b></div></a>
+                </div>
+                <div class="imgph" style="width:270px;flex:none;min-height:190px"><span class="small" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center">map · open requests pinned<br>OpenStreetMap</span></div>
+              </div>
+              <div class="note">priority = AI spoilage-risk model · accepting a request opens the route board</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ 2d ADMIN DESKTOP ══ -->
+    <div class="dv-opt" id="2d">
+      <div class="dv-olabel"><a class="dv-oid" href="#2d">2d</a>Admin console — NEW role from the architecture (desktop-first, no mobile twin needed)</div>
+      <div class="screenD" id="scr-d-admin" data-screen-label="Desktop admin">
+        <div class="desk">
+          <div class="dtop">
+            <span class="cdot"></span><span class="cdot"></span><span class="cdot"></span>
+            <b style="font-size:14px">AgroLink360</b>
+            <div class="rtabs"><a href="#scr-d-farmer">Farmer</a><a href="#scr-d-market">Buyer</a><a href="#scr-d-transport">Transport</a><a class="on" href="#scr-d-admin">Admin</a></div>
+            <div class="input grow" style="padding:4px 10px;font-size:12.5px">🔍 users, orders…</div>
+            <div class="imgph" style="width:28px;height:28px;border-radius:50%"></div>
+          </div>
+          <div class="dwrap">
+            <div class="dside">
+              <a class="on" href="#scr-d-admin">Overview</a>
+              <a href="#scr-d-admin">Users</a>
+              <a href="#scr-d-admin">Listings</a>
+              <a href="#scr-d-admin">Logistics</a>
+              <a href="#scr-d-admin">Analytics</a>
+            </div>
+            <div class="dbody">
+              <b style="font-size:17px">Platform overview — Ashanti pilot</b>
+              <div class="row">
+                <div class="kpi"><b>1,284</b><span>farmers</span></div>
+                <div class="kpi"><b>312</b><span>buyers</span></div>
+                <div class="kpi"><b>86</b><span>transporters</span></div>
+                <div class="kpi"><b>GH₵ 212k</b><span>GMV · June</span></div>
+                <div class="kpi" style="border-color:#2f9e57"><b style="color:#2f9e57">−31%</b><span>post-harvest loss</span></div>
+              </div>
+              <div class="cols">
+                <div class="solid grow">
+                  <b style="font-size:13px">Transactions — weekly</b>
+                  <div class="minibars"><i style="height:35%"></i><i style="height:48%"></i><i style="height:44%"></i><i style="height:61%"></i><i style="height:70%"></i><i style="height:66%"></i><i class="hi" style="height:88%"></i></div>
+                </div>
+                <div class="solid" style="width:250px;flex:none;padding:6px 10px">
+                  <b style="font-size:13px">Needs attention</b>
+                  <a class="wf-tap trow" href="#scr-d-admin"><span class="grow">3 disputed deliveries</span><span class="tag warn">review</span></a>
+                  <a class="wf-tap trow" href="#scr-d-admin"><span class="grow">7 unverified farmers</span><span class="tag">verify</span></a>
+                  <a class="wf-tap trow" href="#scr-d-admin"><span class="grow">MoMo payout queue: 12</span><span class="tag">release</span></a>
+                </div>
+              </div>
+              <div class="solid" style="padding:6px 10px">
+                <div class="row" style="font-size:13px"><b class="grow">USSD / SMS channel</b><span class="tag" style="border-color:#2f9e57;color:#2f9e57">● live</span></div>
+                <div class="trow"><span class="grow">*920*36# sessions today</span><b>438</b></div>
+                <div class="trow"><span class="grow">SMS order notifications sent</span><b>1,902</b></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="dv-next">Try next: "build the real responsive app from <a class="dv-oid" href="#2a">2a</a>–<a class="dv-oid" href="#2d">2d</a> + <a class="dv-oid" href="#t1">turn 1</a>" · "add more admin screens (users, disputes)" · "wireframe the USSD *920*36# text flow too"</p>
+</section>
+
+<section class="dv-turn" id="t1">
+  <div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">AgroLink360 — clickable mobile wireframe (all flows)</span></div>
+  <p class="dv-sub">Tap-through map of the whole app, one phone-width screen per state. <b>Everything outlined green on hover is clickable</b> and jumps to the screen it opens. Grouped by flow: onboarding → farmer → buyer → transport.</p>
+
+  <div class="dv-opts">
+
+    <!-- ══════════ 1a ONBOARDING ══════════ -->
+    <div class="dv-opt" id="1a">
+      <div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Onboarding — shared entry for all 3 roles</div>
+      <div class="flowrow">
+
+        <div class="screen" id="scr-splash" data-screen-label="Splash">
+          <div class="slabel"><span class="snum">1</span>Splash / welcome · START HERE</div>
+          <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮</span></div>
+            <div class="imgph" style="height:120px;margin-top:30px"></div>
+            <div class="h1" style="text-align:center;margin-top:8px">AgroLink360</div>
+            <div class="small" style="text-align:center">Farm to buyer, one tap.<br>Twi · Dagbani · Hausa · English</div>
+            <a class="wf-tap btn accent" href="#scr-login" style="margin-top:auto">Get started →</a>
+            <a class="wf-tap" href="#scr-login" style="text-align:center;font-size:13px;padding:6px">I already have an account</a>
+            <div class="box" style="text-align:center;font-size:12.5px;color:#777">No smartphone? Dial <b style="color:#1a1a1a">*920*36#</b></div>
+          </div>
+          <div class="note">↳ both buttons go to login</div>
+        </div>
+
+        <div class="screen" id="scr-login" data-screen-label="Login">
+          <div class="slabel"><span class="snum">2</span>Login — phone + PIN (no email)</div>
+          <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮</span></div>
+            <div class="h1" style="margin-top:16px">Welcome back</div>
+            <div class="small">Sign in with your phone number</div>
+            <div class="input" style="margin-top:10px">+233 · phone number</div>
+            <div class="input">• • • •  PIN</div>
+            <a class="wf-tap btn primary" href="#scr-role">Continue</a>
+            <a class="wf-tap" href="#scr-role" style="text-align:center;font-size:13px;padding:5px">New here? Create account</a>
+            <div class="box" style="margin-top:auto;font-size:12.5px;color:#777">OTP by SMS — works on any phone</div>
+          </div>
+        </div>
+
+        <div class="screen" id="scr-role" data-screen-label="Role select">
+          <div class="slabel"><span class="snum">3</span>Pick a role → lands on that home</div>
+          <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮</span></div>
+            <div class="h1" style="margin-top:10px">I am a…</div>
+            <a class="wf-tap solid" href="#scr-fhome"><div class="row"><div class="imgph" style="width:44px;height:44px"></div><div class="grow"><b>Farmer</b><div class="small">Sell my produce</div></div><div>→</div></div></a>
+            <a class="wf-tap solid" href="#scr-market"><div class="row"><div class="imgph" style="width:44px;height:44px"></div><div class="grow"><b>Buyer</b><div class="small">Buy fresh produce</div></div><div>→</div></div></a>
+            <a class="wf-tap solid" href="#scr-requests"><div class="row"><div class="imgph" style="width:44px;height:44px"></div><div class="grow"><b>Transporter</b><div class="small">Deliver &amp; earn</div></div><div>→</div></div></a>
+            <div class="note" style="margin-top:auto">each card jumps to that role's flow ↓</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════ 1b FARMER ══════════ -->
+    <div class="dv-opt" id="1b">
+      <div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Farmer flow — home · produce · new listing · wallet</div>
+      <div class="flowrow">
+
+        <div class="screen" id="scr-fhome" data-screen-label="Farmer home">
+          <div class="slabel"><span class="snum">4</span>Farmer home</div>
+          <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮</span></div>
+            <div class="row"><div class="grow"><div class="h1">Akwaaba, Yaw</div><div class="small">Ejisu · Tue 1 Jul</div></div><a class="wf-tap solid" href="#scr-wallet" style="padding:6px 9px;font-size:12px">GH₵ 8,420</a></div>
+            <div class="row">
+              <a class="wf-tap kpi" href="#scr-fproduce"><b>12</b><span>listings</span></a>
+              <a class="wf-tap kpi" href="#scr-forders"><b>5</b><span>orders</span></a>
+              <a class="wf-tap kpi" href="#scr-fproduce"><b>2</b><span>alerts ⚠</span></a>
+            </div>
+            <div class="solid">
+              <div class="row"><span class="tag">AI</span><b style="font-size:14px">Harvest assistant</b></div>
+              <div class="small" style="margin-top:4px">Tomatoes — best selling window <b style="color:#1a1a1a">Jul 8–15</b> · est. 32 crates · GH₵ 165</div>
+            </div>
+            <a class="wf-tap btn accent" href="#scr-newlisting">+ List produce</a>
+            <a class="wf-tap box" href="#scr-forders"><div class="small">latest order</div><div class="row" style="font-size:13.5px"><span class="grow">Kumasi Fresh Foods · 8 crates</span><span class="tag">in transit</span></div></a>
+            <div class="nav">
+              <a class="on" href="#scr-fhome"><span class="navic"></span>Home</a>
+              <a href="#scr-fproduce"><span class="navic"></span>Produce</a>
+              <a href="#scr-forders"><span class="navic"></span>Orders</a>
+              <a href="#scr-wallet"><span class="navic"></span>Wallet</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen" id="scr-fproduce" data-screen-label="My produce">
+          <div class="slabel"><span class="snum">5</span>My produce</div>
+          <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮</span></div>
+            <div class="row"><div class="h1 grow">My produce</div><a class="wf-tap btn accent" href="#scr-newlisting" style="padding:4px 12px;font-size:14px">+ New</a></div>
+            <a class="wf-tap solid" href="#scr-newlisting"><div class="row"><div class="imgph" style="width:42px;height:42px"></div><div class="grow"><b style="font-size:14px">Tomatoes</b><div class="small">18 crates · GH₵ 140</div><div class="bar" style="margin-top:3px"><i style="width:92%"></i></div></div></div></a>
+            <a class="wf-tap solid" href="#scr-newlisting"><div class="row"><div class="imgph" style="width:42px;height:42px"></div><div class="grow"><b style="font-size:14px">Okro</b><div class="small">14 baskets · GH₵ 60</div><div class="bar" style="margin-top:3px"><i style="width:81%"></i></div></div></div></a>
+            <a class="wf-tap solid" href="#scr-newlisting" style="border-color:#b05c2a"><div class="row"><div class="imgph" style="width:42px;height:42px"></div><div class="grow"><b style="font-size:14px">Onion</b> <span class="tag warn">spoilage risk</span><div class="small">22 sacks · GH₵ 320</div><div class="bar" style="margin-top:3px"><i style="width:67%;background:#b05c2a"></i></div></div></div></a>
+            <div class="note">green bar = AI freshness score · tap a card to edit</div>
+            <div class="nav">
+              <a href="#scr-fhome"><span class="navic"></span>Home</a>
+              <a class="on" href="#scr-fproduce"><span class="navic"></span>Produce</a>
+              <a href="#scr-forders"><span class="navic"></span>Orders</a>
+              <a href="#scr-wallet"><span class="navic"></span>Wallet</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen" id="scr-newlisting" data-screen-label="New listing">
+          <div class="slabel"><span class="snum">6</span>New listing (bottom sheet)</div>
+          <div class="phone" style="background:#eee">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮</span></div>
+            <div class="small" style="text-align:center">dimmed produce list behind</div>
+            <div style="margin-top:auto;background:#fff;border:2px solid #1a1a1a;border-radius:18px 18px 14px 14px;padding:12px 11px;display:flex;flex-direction:column;gap:8px">
+              <div style="width:40px;height:4px;background:#ccc;border-radius:4px;margin:0 auto"></div>
+              <b style="font-size:16px">List new produce</b>
+              <div class="imgph" style="height:54px"><span class="small" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">add photo 📷</span></div>
+              <div class="input">Produce · e.g. Tomatoes</div>
+              <div class="row"><div class="input grow">Qty</div><div class="input grow">Unit ▾</div></div>
+              <div class="input">Price GH₵ / unit</div>
+              <div class="box small">AI suggests <b style="color:#1a1a1a">GH₵ 140</b> — market avg this week</div>
+              <a class="wf-tap btn accent" href="#scr-fproduce">Publish listing</a>
+            </div>
+          </div>
+          <div class="note">↳ publish returns to produce list with new card on top</div>
+        </div>
+
+        <div class="screen" id="scr-forders" data-screen-label="Farmer orders">
+          <div class="slabel"><span class="snum">7</span>Orders received</div>
+          <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮</span></div>
+            <div class="h1">Orders</div>
+            <div class="chips"><span class="chip on">Open</span><span class="chip">Done</span></div>
+            <a class="wf-tap solid" href="#scr-tracking"><div class="row" style="font-size:13.5px"><div class="grow"><b>Kumasi Fresh Foods</b><div class="small">Tomatoes · 8 crates · GH₵ 1,120</div></div><span class="tag">in transit</span></div></a>
+            <a class="wf-tap solid" href="#scr-tracking"><div class="row" style="font-size:13.5px"><div class="grow"><b>Golden Tulip Hotel</b><div class="small">Garden eggs · 4 crates · GH₵ 520</div></div><span class="tag">confirmed</span></div></a>
+            <a class="wf-tap box" href="#scr-requests" style="font-size:13.5px"><b>Request transport</b> for 2 unshipped orders →</a>
+            <div class="nav">
+              <a href="#scr-fhome"><span class="navic"></span>Home</a>
+              <a href="#scr-fproduce"><span class="navic"></span>Produce</a>
+              <a class="on" href="#scr-forders"><span class="navic"></span>Orders</a>
+              <a href="#scr-wallet"><span class="navic"></span>Wallet</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen" id="scr-wallet" data-screen-label="Wallet">
+          <div class="slabel"><span class="snum">8</span>Wallet (MoMo)</div>
+          <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮</span></div>
+            <div class="h1">Wallet</div>
+            <div class="solid" style="background:#1a1a1a;color:#fff">
+              <div class="small" style="color:#aaa">MTN MoMo · 024 ••• 318</div>
+              <div style="font-size:26px;margin:4px 0">GH₵ 8,420</div>
+              <div class="row"><a class="wf-tap btn" href="#scr-wallet" style="flex:1;border-color:#fff;color:#fff;font-size:13px;padding:5px">Withdraw</a><a class="wf-tap btn" href="#scr-wallet" style="flex:1;background:#fff;color:#1a1a1a;font-size:13px;padding:5px">Cash out</a></div>
+            </div>
+            <div class="small">Transactions</div>
+            <a class="wf-tap box" href="#scr-forders"><div class="row" style="font-size:13px"><span class="grow">Kumasi Fresh Foods</span><b style="color:#2f9e57">+1,120</b></div></a>
+            <a class="wf-tap box" href="#scr-forders"><div class="row" style="font-size:13px"><span class="grow">Withdrawal to MoMo</span><b>−2,000</b></div></a>
+            <a class="wf-tap box" href="#scr-forders"><div class="row" style="font-size:13px"><span class="grow">Golden Tulip</span><b style="color:#2f9e57">+520</b></div></a>
+            <div class="nav">
+              <a href="#scr-fhome"><span class="navic"></span>Home</a>
+              <a href="#scr-fproduce"><span class="navic"></span>Produce</a>
+              <a href="#scr-forders"><span class="navic"></span>Orders</a>
+              <a class="on" href="#scr-wallet"><span class="navic"></span>Wallet</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════ 1c BUYER ══════════ -->
+    <div class="dv-opt" id="1c">
+      <div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Buyer flow — market · product+checkout · tracking · orders</div>
+      <div class="flowrow">
+
+        <div class="screen" id="scr-market" data-screen-label="Marketplace">
+          <div class="slabel"><span class="snum">9</span>Marketplace</div>
+          <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮</span></div>
+            <div class="h1">Fresh near Kumasi</div>
+            <div class="input">🔍 search tomatoes, pepper…</div>
+            <div class="chips"><span class="chip on">All</span><span class="chip">Tomatoes</span><span class="chip">Peppers</span><span class="chip">+4</span></div>
+            <a class="wf-tap solid" href="#scr-product"><div class="row"><div class="imgph" style="width:52px;height:52px"></div><div class="grow"><b style="font-size:14px">Tomatoes</b> <span class="tag" style="border-color:#2f9e57;color:#2f9e57">92% fresh</span><div class="small">Yaw M. · Ejisu · 8 km · ★4.8</div></div><b>140</b></div></a>
+            <a class="wf-tap solid" href="#scr-product"><div class="row"><div class="imgph" style="width:52px;height:52px"></div><div class="grow"><b style="font-size:14px">Sweet Pepper</b> <span class="tag" style="border-color:#2f9e57;color:#2f9e57">95%</span><div class="small">Kwabena O. · Offinso · 15 km</div></div><b>115</b></div></a>
+            <a class="wf-tap solid" href="#scr-product"><div class="row"><div class="imgph" style="width:52px;height:52px"></div><div class="grow"><b style="font-size:14px">Garden Eggs</b> <span class="tag" style="border-color:#2f9e57;color:#2f9e57">88%</span><div class="small">Adwoa B. · Akomadan · 12 km</div></div><b>130</b></div></a>
+            <div class="nav">
+              <a class="on" href="#scr-market"><span class="navic"></span>Market</a>
+              <a href="#scr-tracking"><span class="navic"></span>Track</a>
+              <a href="#scr-borders"><span class="navic"></span>Orders</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen" id="scr-product" data-screen-label="Product + checkout">
+          <div class="slabel"><span class="snum">10</span>Product → order sheet</div>
+          <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮</span></div>
+            <a class="wf-tap" href="#scr-market" style="font-size:13px">← back to market</a>
+            <div class="imgph" style="height:86px"></div>
+            <div class="row"><div class="grow"><b style="font-size:17px">Tomatoes</b><div class="small">Yaw Mensah · Ejisu · ★4.8</div></div><b style="font-size:17px">GH₵ 140<span class="small">/crate</span></b></div>
+            <div class="box small">AI: 92% fresh · harvested yesterday · price 5% below market avg</div>
+            <div style="border-top:2px solid #1a1a1a;margin-top:4px;padding-top:8px;display:flex;flex-direction:column;gap:8px">
+              <div class="row"><span class="grow" style="font-size:14px">Quantity (crates)</span><a class="wf-tap solid" href="#scr-product" style="padding:2px 11px">−</a><b>8</b><a class="wf-tap solid" href="#scr-product" style="padding:2px 10px">+</a></div>
+              <div class="row" style="font-size:14px"><span class="grow">Delivery (14 km, est.)</span><b>GH₵ 95</b></div>
+              <div class="row" style="font-size:16px"><span class="grow"><b>Total</b></span><b>GH₵ 1,215</b></div>
+              <a class="wf-tap btn accent" href="#scr-pay">Pay with MoMo →</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen" id="scr-pay" data-screen-label="MoMo payment">
+          <div class="slabel"><span class="snum">11</span>MoMo confirm (USSD-style)</div>
+          <div class="phone" style="background:#eee">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮</span></div>
+            <div class="small" style="text-align:center">checkout dimmed behind</div>
+            <div style="margin:auto 6px;background:#fff;border:2px solid #1a1a1a;border-radius:14px;padding:14px 12px;display:flex;flex-direction:column;gap:9px">
+              <b style="font-size:15px">MTN Mobile Money</b>
+              <div class="small">Pay <b style="color:#1a1a1a">GH₵ 1,215</b> to AgroLink360?<br>Funds held in escrow until delivery.</div>
+              <div class="input">• • • •  MoMo PIN</div>
+              <a class="wf-tap btn primary" href="#scr-tracking">Confirm payment</a>
+              <a class="wf-tap" href="#scr-product" style="text-align:center;font-size:13px">Cancel</a>
+            </div>
+            <div class="note" style="margin-top:auto">↳ success → straight to live tracking</div>
+          </div>
+        </div>
+
+        <div class="screen" id="scr-tracking" data-screen-label="Tracking">
+          <div class="slabel"><span class="snum">12</span>Live tracking</div>
+          <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮</span></div>
+            <div class="row"><b class="grow" style="font-size:16px">Order #AL-2381</b><span class="tag" style="border-color:#2f9e57;color:#2f9e57">on time</span></div>
+            <div class="imgph" style="height:110px"><span class="small" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">map · Ejisu → Kumasi · 🛺 live pin</span></div>
+            <div class="row"><b style="font-size:22px">24 min</b><span class="small">estimated arrival</span></div>
+            <div class="steprow"><span class="dot"></span><span>Picked up · Ejisu 8:46</span></div>
+            <div class="steprow"><span class="dot"></span><b>In transit · 14 km to go</b></div>
+            <div class="steprow"><span class="dot o"></span><span class="small">Delivered · est 9:32</span></div>
+            <a class="wf-tap solid" href="#scr-tracking"><div class="row" style="font-size:13.5px"><div class="imgph" style="width:36px;height:36px;border-radius:50%"></div><div class="grow"><b>Kofi Asante</b><div class="small">Tricycle · GR 4821-22</div></div><span class="tag">📞 call</span></div></a>
+            <div class="nav">
+              <a href="#scr-market"><span class="navic"></span>Market</a>
+              <a class="on" href="#scr-tracking"><span class="navic"></span>Track</a>
+              <a href="#scr-borders"><span class="navic"></span>Orders</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen" id="scr-borders" data-screen-label="Buyer orders">
+          <div class="slabel"><span class="snum">13</span>Order history</div>
+          <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮</span></div>
+            <div class="h1">My orders</div>
+            <a class="wf-tap solid" href="#scr-tracking"><div class="row" style="font-size:13.5px"><div class="grow"><b>Tomatoes · 8 crates</b><div class="small">#AL-2381 · GH₵ 1,120</div></div><span class="tag">in transit</span></div></a>
+            <a class="wf-tap solid" href="#scr-rate"><div class="row" style="font-size:13.5px"><div class="grow"><b>Cabbage · 20 heads</b><div class="small">#AL-2370 · GH₵ 300</div></div><span class="tag">rate ★</span></div></a>
+            <a class="wf-tap box" href="#scr-product" style="font-size:13.5px"><b>Reorder</b> tomatoes from Yaw M. →</a>
+            <div class="nav">
+              <a href="#scr-market"><span class="navic"></span>Market</a>
+              <a href="#scr-tracking"><span class="navic"></span>Track</a>
+              <a class="on" href="#scr-borders"><span class="navic"></span>Orders</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen" id="scr-rate" data-screen-label="Rating">
+          <div class="slabel"><span class="snum">14</span>Rate &amp; review</div>
+          <div class="phone" style="min-height:340px">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮</span></div>
+            <div class="h1" style="text-align:center;margin-top:10px">Delivered ✓</div>
+            <div class="small" style="text-align:center">How was your order from Yaw M.?</div>
+            <div style="text-align:center;font-size:26px;letter-spacing:4px">★ ★ ★ ★ ☆</div>
+            <div class="input" style="height:44px">Leave a note (optional)</div>
+            <a class="wf-tap btn accent" href="#scr-borders">Submit rating</a>
+            <a class="wf-tap" href="#scr-borders" style="text-align:center;font-size:13px;padding:4px">Skip</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════ 1d TRANSPORT ══════════ -->
+    <div class="dv-opt" id="1d">
+      <div class="dv-olabel"><a class="dv-oid" href="#1d">1d</a>Transport flow — requests · consolidate · active route</div>
+      <div class="flowrow">
+
+        <div class="screen" id="scr-requests" data-screen-label="Delivery requests">
+          <div class="slabel"><span class="snum">15</span>Requests (AI-prioritised)</div>
+          <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮</span></div>
+            <div class="h1">Requests</div>
+            <a class="wf-tap solid" href="#scr-consolidate" style="border-style:dashed;background:#fdf6ea"><div class="row"><span class="tag warn">AI</span><div class="grow" style="font-size:13px"><b>3 Ejisu pickups can share 1 trip</b><div class="small">save GH₵ 70 fuel</div></div><b>→</b></div></a>
+            <a class="wf-tap solid" href="#scr-route"><div class="row" style="font-size:13.5px"><div class="grow"><b>Ejisu → Kumasi Central</b> <span class="tag warn">high</span><div class="small">8 crates tomatoes · 14 km</div></div><b>GH₵ 95</b></div></a>
+            <a class="wf-tap solid" href="#scr-route"><div class="row" style="font-size:13.5px"><div class="grow"><b>Offinso → Tech Junction</b> <span class="tag warn">high</span><div class="small">6 crates pepper · 22 km</div></div><b>GH₵ 120</b></div></a>
+            <a class="wf-tap solid" href="#scr-route"><div class="row" style="font-size:13.5px"><div class="grow"><b>Akomadan → Kumasi</b><div class="small">5 sacks onion · 38 km</div></div><b>GH₵ 180</b></div></a>
+            <div class="note">high = perishable, AI spoilage model · tap = accept</div>
+            <div class="nav">
+              <a class="on" href="#scr-requests"><span class="navic"></span>Requests</a>
+              <a href="#scr-route"><span class="navic"></span>Route</a>
+              <a href="#scr-wallet"><span class="navic"></span>Earnings</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen" id="scr-consolidate" data-screen-label="Consolidation">
+          <div class="slabel"><span class="snum">16</span>Shared-delivery offer</div>
+          <div class="phone" style="min-height:400px">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮</span></div>
+            <a class="wf-tap" href="#scr-requests" style="font-size:13px">← back</a>
+            <div class="h1">Combine 3 pickups</div>
+            <div class="steprow"><span class="dot"></span><span>Yaw M. · 8 crates tomatoes</span></div>
+            <div class="steprow"><span class="dot"></span><span>Ama S. · 12 heads cabbage</span></div>
+            <div class="steprow"><span class="dot"></span><span>Kwabena O. · 6 crates pepper</span></div>
+            <div class="box"><div class="row" style="font-size:14px"><span class="grow">3 solo trips</span><s>GH₵ 255</s></div><div class="row" style="font-size:15px"><span class="grow"><b>1 shared route</b></span><b style="color:#2f9e57">GH₵ 185</b></div><div class="small">84% load used · 2 fewer trips</div></div>
+            <a class="wf-tap btn accent" href="#scr-route" style="margin-top:auto">Accept shared route →</a>
+            <a class="wf-tap" href="#scr-requests" style="text-align:center;font-size:13px;padding:4px">Keep separate</a>
+          </div>
+        </div>
+
+        <div class="screen" id="scr-route" data-screen-label="Active route">
+          <div class="slabel"><span class="snum">17</span>Active route (driver)</div>
+          <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮</span></div>
+            <div class="row"><b class="grow" style="font-size:16px">Today's route</b><span class="tag">3 stops</span></div>
+            <div class="imgph" style="height:96px"><span class="small" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">map · A → 1 → 2 → B</span></div>
+            <div class="steprow"><span class="dot"></span><div class="grow"><b>Ejisu · Yaw M.</b> <span class="small">pickup ✓ 8:46</span></div></div>
+            <div class="steprow"><span class="dot"></span><div class="grow"><b>Ejisu · Ama S.</b> <span class="small">next — 2 km</span></div><a class="wf-tap tag" href="#scr-route">navigate</a></div>
+            <div class="steprow"><span class="dot o"></span><div class="grow small">Offinso Rd · Kwabena O.</div></div>
+            <div class="steprow"><span class="dot o"></span><div class="grow small">Drop: Kumasi Fresh Foods</div></div>
+            <a class="wf-tap btn primary" href="#scr-tracking">Mark stop done → buyer sees update</a>
+            <div class="nav">
+              <a href="#scr-requests"><span class="navic"></span>Requests</a>
+              <a class="on" href="#scr-route"><span class="navic"></span>Route</a>
+              <a href="#scr-wallet"><span class="navic"></span>Earnings</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <p class="dv-next">Try next: "make <a class="dv-oid" href="#1c">1c</a> checkout a separate cart screen" · "show 2–3 layout variations of the marketplace" · "turn this wireframe into the real responsive mobile app"</p>
+</section>
+</x-dc>
+</body>
+</html>
