@@ -11,7 +11,7 @@ services:
     plan: free
     rootDir: backend
     buildCommand: npm install
-    startCommand: npm run migrate && npm run seed && npm run start
+    startCommand: npm run migrate && npm run dedupe && npm run seed && npm run start
     envVars:
       - key: DATABASE_URL
         fromDatabase:
